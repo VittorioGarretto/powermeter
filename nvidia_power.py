@@ -23,7 +23,7 @@ def print_data():
     return output
 
 def save_data():
-    with open('labels.csv', 'a') as file:
+    with open('data/labels.csv', 'a') as file:
         file.write(get_gpu_power())
         file.write(", ") 
         file.write(get_time())
