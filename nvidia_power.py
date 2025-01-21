@@ -1,8 +1,8 @@
 import subprocess
 import time
 
-CMD_GPU = r"nvidia-smi --query-gpu=power.draw --format=csv,noheader"
-CMD_TIME = r"nvidia-smi --query-gpu=timestamp --format=csv,noheader"
+CMD_GPU = r"nvidia-smi --query-gpu=power.draw --format=csv,noheader,nounits"
+CMD_TIME = r"nvidia-smi --query-gpu=timestamp --format=csv,noheader,nounits"
 
 def get_gpu_power():
     output = subprocess.run(CMD_GPU,
