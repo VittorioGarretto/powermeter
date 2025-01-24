@@ -2,7 +2,7 @@ import paho.mqtt.client as mqtt
 import ast
 from datetime import datetime
 
-entity = "0x0015bc002f013a2d"
+entity = "smart_plug_id"
 
 # Callback function to handle incoming messages
 def on_message(client, userdata, msg):
