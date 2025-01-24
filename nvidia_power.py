@@ -33,7 +33,6 @@ def main():
     while(True):
         print(print_data())
         save_data()
-        time.sleep(2)
 
 
 if __name__ == "__main__":
