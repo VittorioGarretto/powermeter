@@ -1,8 +1,20 @@
 import paho.mqtt.client as mqtt
 import ast
-from datetime import datetime
+import time
+import subprocess
 
-entity = "smart_plug_id"
+# Power readings, make sure to make the files executable
+SCRIPTS = ["./ram_power.sh", "./nvme_power.sh", "./storage_power.sh",
+           "./nic_power.sh"]
+
+def shell_read(script):
+    output = subprocess.run(script,
+                            shell=True,
+                            stdout=subprocess.PIPE)
+    return output.stdout.decode().rstrip().strip()
+
+
+entity = "smartplug_id" # Entity ID of the smart plug
 
 # Callback function to handle incoming messages
 def on_message(client, userdata, msg):
@@ -10,12 +22,16 @@ def on_message(client, userdata, msg):
     payload_dict = ast.literal_eval(msg.payload.decode()) #generating data dict
     payload_dict['state'] = 1 if payload_dict['state']=='ON' else 0 #converting ON/OFF in binary values
     payload_val = payload_dict.values()
+    efficiency = shell_read(f"./psu_eff.sh {payload_dict['power']} 1600")
     
     with open('data.csv', 'a') as file:
         for val in payload_val:
             file.write(str(val))
             file.write(",")
-        file.write(datetime.now().strftime("%Y/%m/%d %H:%M:%S") + f".{datetime.now().microsecond}")
+        for script in SCRIPTS:
+            file.write(str(float(shell_read(script))/float(efficiency)))
+            file.write(",")
+        file.write(str(time.time()))
         file.write("\n")
 
 # Callback function for connection
