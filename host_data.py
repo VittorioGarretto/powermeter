@@ -5,7 +5,7 @@ import subprocess
 
 # Power readings, make sure to make the files executable
 SCRIPTS = ["./ram_power.sh", "./nvme_power.sh", "./storage_power.sh",
-           "./nic_power.sh, ./cpu_power.sh"]
+           "./nic_power.sh", "./cpu_power.sh"]
 
 def shell_read(script):
     output = subprocess.run(script,
