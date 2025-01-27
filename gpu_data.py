@@ -1,6 +1,7 @@
 import subprocess
 import time
 
+# Using only one GPU
 CMD_GPU = r"nvidia-smi -i 0 --query-gpu=power.draw --format=csv,noheader,nounits"
 
 def get_gpu_power():
@@ -29,4 +30,6 @@ def main():
 
 
 if __name__ == "__main__":
+    with open('labels.csv', 'a') as file:
+        file.write('gpu_power,timestamp\n')
     main()
