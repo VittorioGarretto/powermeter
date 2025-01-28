@@ -15,9 +15,10 @@ y_train_df = pd.DataFrame(y_train)
 y_train_df = y_train_df.assign(timestamp=labels_df.loc[indexes, 'timestamp'])
 y_train_df = y_train_df.assign(gpu_power=labels_df.loc[indexes, 'gpu_power'])
 
-print(y_train_df, '\n',  data_df)
+y_train_df.drop(columns='timestamp').to_csv('Y_train.csv', sep=',', index=False, header=False)
+data_df.drop(columns='timestamp').to_csv('X_train.csv', sep=',', index=False, header=False)
 
-# Convert then the dataframes in torch/tf tensors
+print(y_train_df, '\n',  data_df)
 
 ## Output ##
 #     gpu_power       timestamp
