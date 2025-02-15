@@ -1,15 +1,21 @@
 #!/bin/bash
 
-# Numero di iterazioni
-ITERATIONS=2  
+ITERATIONS=50
+batch=1
+cicle=1
 
-for ((i=1; i<=ITERATIONS; i++))
-do
-    echo "Iterazione $i: Stress test sulla GPU"
-    python3 stress_test.py
-    
-    echo "Iterazione $i: Attesa di 20 secondi per il raffreddamento"
+while true; do
+    for ((i=1; i<=ITERATIONS; i++))
+    do
+        echo "Iteration $i: Stress test on GPU"
+        python3 ../stress_test.py --gpu_id 0 --batch "$batch"
+        
+        echo "Iteration $i: 8 seconds cool down"
+        sleep 8
+        batch=$((batch + 10))
+    done
+    echo "Cicle $cicle done"
+    batch=1
+    cicle=$((cicle + 1))
     sleep 20
 done
-
-echo "Test completato."
