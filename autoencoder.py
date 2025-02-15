@@ -5,8 +5,8 @@ from torch.utils.data import DataLoader, Dataset
 import pandas as pd
 import numpy as np
 
-BATCH_SIZE = 64
-EPOCHS = 1000
+BATCH_SIZE = 16
+EPOCHS = 2000
 
 
 class Autoencoder(nn.Module):
@@ -25,20 +25,16 @@ class Autoencoder(nn.Module):
         self.encoder = nn.Sequential(
             nn.Linear(input_dim-1, 30),
             nn.ReLU(),
-            nn.Linear(30, 128),
-            nn.ReLU(),
-            nn.Linear(128, self.hidden_dim),
-            nn.ReLU()
+            nn.Linear(30, self.hidden_dim),
+            nn.Tanh()
         )
 
         # Decoder
         self.decoder = nn.Sequential(
             nn.Linear(self.hidden_dim, 30),
             nn.ReLU(),
-            nn.Linear(30, 128),
-            nn.ReLU(),
-            nn.Linear(128, input_dim-1),
-            nn.ReLU()
+            nn.Linear(30, input_dim-1),
+            nn.Tanh()
         )
 
     def forward(self, x):
@@ -119,27 +115,25 @@ if __name__ == '__main__':
     print(f"Using device: {device}")
 
     # Creating the torch dataset
-    data_df = pd.read_csv('data.csv')
-    labels_df = pd.read_csv('labels.csv')
+    x_train_df = pd.read_csv('../3060ti/X_train_3060ti.csv')
+    y_train_df = pd.read_csv('../3060ti/Y_train_3060ti.csv')
 
-    data_df['timestamp'] = pd.to_numeric(data_df['timestamp'], errors='raise', downcast='float')
-    labels_df['timestamp'] = pd.to_numeric(labels_df['timestamp'], errors='raise', downcast='float')
-
-    data_timestamps = data_df['timestamp'].values
-    labels_timestamps = labels_df['timestamp'].values
-
-    # Indexes of closest timestamps
-    indexes = np.abs(data_timestamps[:, None] - labels_timestamps).argmin(axis=1)
-    y_train_df = labels_df.iloc[indexes][['gpu_power']]
-    x_train_df = data_df.drop(columns=['timestamp', 'ac_frequency', 'current', 'nvme_power', 
-                                      'device_temperature', 'energy', 'linkquality', 'state', 'voltage'])
+    y_train_df = y_train_df.iloc[0:800][['gpu_power']]
+    x_train_df = x_train_df.drop(columns=['timestamp', 'ac_frequency', 'current', 'nvme_power', 
+                                      'device_temperature', 'energy', 'linkquality', 'state', 'voltage', 'psu_eff'])
+    x_train_df = x_train_df.iloc[0:800]
     
-    y_train_df.reset_index(inplace=True)
+    
     x_train_df['gpu_power'] = y_train_df['gpu_power']
     # Rearrange the columns
     cols = list(x_train_df.columns)  
     cols.insert(1, cols.pop(-1))
     x_train_df = x_train_df[cols]
+
+    # Normalize the data wrt the max value of the df (for the sum constraint 
+    # is mandatory to normalize everything by the same amount)
+    max_val = x_train_df.to_numpy().max()
+    x_train_df /= max_val
 
     dataset = torch.tensor(x_train_df.values, dtype=torch.float32)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
@@ -149,8 +143,8 @@ if __name__ == '__main__':
     model = Autoencoder(input_dim).to(device)
     model = torch.compile(model)
 
-    criterion = CustomLoss(lambda_denoise=1.0, lambda_sum=0.7, lambda_recon=1.5)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+    criterion = CustomLoss(lambda_denoise=1.0, lambda_sum=1.0, lambda_recon=1.0)
+    optimizer = torch.optim.Adam(model.parameters(), lr=0.00001)
 
     # Training 
     for epoch in range(EPOCHS):
@@ -184,4 +178,14 @@ if __name__ == '__main__':
 
     x_denoised_df = pd.DataFrame(hidden.cpu().numpy(), columns=x_train_df.columns)
     x_recon_df = pd.DataFrame(output.cpu().numpy(), columns=x_train_df.columns)
-    print(x_train_df, '\n', x_denoised_df, '\n', x_recon_df)
+    
+    x_train_df["diff"] = x_train_df.iloc[:, 1:].sum(axis=1) - x_train_df.iloc[:, 0]
+    x_denoised_df["diff"] = x_denoised_df.iloc[:, 1:].sum(axis=1) - x_denoised_df.iloc[:, 0]
+    
+    x_train_df *= max_val
+    x_denoised_df *= max_val
+    x_recon_df *= max_val
+
+    print(x_train_df, '\n', x_denoised_df, '\n', x_recon_df, '\n')
+    print(f"Err after denoise {x_denoised_df['diff'].mean()} with std {x_denoised_df['diff'].std()}\n")
+    print(f"Err before {x_train_df['diff'].mean()} with std {x_train_df['diff'].std()}")
