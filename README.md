@@ -1,2 +1,2 @@
 # powermeter
-Set of utilities to generate a data/model that estimates gpu power consumption 
+Set of utilities to track power consumption of pc components in linux
