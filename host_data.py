@@ -5,15 +5,15 @@ import subprocess
 
 # Power readings, files should be executable
 SCRIPTS = ["./ram_power.sh", "./nvme_power.sh", "./storage_power.sh",
-           "./nic_power.sh", "./cpu_power.sh"]
+           "./nic_power.sh", "./cpu_power.sh", "./temp.sh"]
 PATH = "power-scripts/"
 
 entity = "smartplug_id"
 
 # Setting up the csv file to be used as pandas df
 with open('data.csv', 'a') as file:
-    file.write('timestamp,ac_frequency,current,energy,linkquality,power,state,voltage,')
-    file.write('ram_power,nvme_power,storage_power,nic_power,cpu_power,psu_eff\n')
+    file.write('timestamp,ac_frequency,current,energy,linkquality,power,state,voltage,ram_power,nvme_power,')
+    file.write('storage_power,nic_power,cpu_power,phy_temp,mac_temp,Tctl,Tccd1,Tccd3,Tccd5,Tccd7,psu_eff\n')
 
 
 def shell_read(script):
