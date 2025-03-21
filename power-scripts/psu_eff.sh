@@ -12,7 +12,7 @@ EFFCURVES[base]="0, 0, 80"
 EFFCURVES[bronze]="-0.0354, 2.58, 44.571"
 EFFCURVES[silver]="-0.0367, 2.67, 46.286"
 EFFCURVES[gold]="-0.0376, 2.73, 47.429"
-EFFCURVES[platinum]="-0.0389, 2.79, 49.762"
+EFFCURVES[platinum]="-0.00158, 0.1775, 87.0833"
 EFFCURVES[titanium]="-0.0405, 2.90, 52.190"
 
 readarray -td, P <<<"${EFFCURVES[$EFFICIENCY]}"
